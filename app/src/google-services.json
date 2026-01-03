@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "369886709660",
+    "project_id": "studio-8717687742-3a239",
+    "storage_bucket": "studio-8717687742-3a239.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:369886709660:android:214d214705650dbcfeaa59",
+        "android_client_info": {
+          "package_name": "com.pessilogroup.drivesight"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUM9Jrqty6C-E3kgrSNrjTg4_IYbe3HdA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
