@@ -2,7 +2,6 @@ package com.pessilogroup.drivesight
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.TextView
 import com.pessilogroup.drivesight.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -12,12 +11,20 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // Initialize Firebase through Native NDK
+        //initFirebase(this)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // Example of a call to a native method
         binding.sampleText.text = stringFromJNI()
     }
+
+    /**
+     * A native method that initializes Firebase.
+     */
+    //external fun initFirebase(activity: MainActivity)
 
     /**
      * A native method that is implemented by the 'drivesight' native library,
