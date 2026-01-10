@@ -1,11 +1,10 @@
 # This is a basic workflow that is manually triggered
-
 name: Workflow-Hybrid PR Check 
 
 # Kích hoạt khi có Pull Request vào nhánh develop
 on:
   pull_request:
-    branches: [ "dev.up" ]
+    branches: [ "master" ]
 
 jobs:
   build-and-verify:
