@@ -1,23 +1,18 @@
 [versions]
 agp = "8.13.2"
-kotlin = "2.3.0"
+kotlin = "2.0.21"
 coreKtx = "1.10.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 appcompat = "1.6.1"
-material = "1.13.0"
+material = "1.10.0"
 constraintlayout = "2.1.4"
 googleServices = "4.4.4"
 firebaseBom = "34.7.0"
 firebaseAnalytics = "23.0.0"
 firebaseCrashlytics = "20.0.3"
 googleFirebaseCrashlytics = "3.0.6"
-ui = "1.10.0"
-uiToolingPreview = "1.10.0"
-composeBom = "2023.08.00"
-comAndroidBuiltInKotlinGradlePlugin = "9.1.0-alpha03"
-comAndroidLibraryGradlePlugin = "9.1.0-alpha03"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -31,11 +26,6 @@ firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.r
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics" }
 google-firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics", version.ref = "firebaseAnalytics" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics", version.ref = "firebaseCrashlytics" }
-androidx-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "ui" }
-androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview", version.ref = "uiToolingPreview" }
-compose-bom = { group = "platform(", name = "compose-bom", version.ref = "composeBom" }
-com-android-built-in1-kotlin-gradle-plugin = { group = "com.android.built-in-kotlin", name = "com.android.built-in-kotlin.gradle.plugin", version.ref = "comAndroidBuiltInKotlinGradlePlugin" }
-com-android-library-gradle-plugin = { group = "com.android.library", name = "com.android.library.gradle.plugin", version.ref = "comAndroidLibraryGradlePlugin" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

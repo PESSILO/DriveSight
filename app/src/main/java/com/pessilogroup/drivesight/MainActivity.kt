@@ -1,7 +1,11 @@
 package com.pessilogroup.drivesight
 
-import androidx.appcompat.app.AppCompatActivity
+import android.content.Intent
 import android.os.Bundle
+import android.provider.Settings
+import android.service.notification.NotificationListenerService
+import android.service.notification.StatusBarNotification
+import androidx.appcompat.app.AppCompatActivity
 import com.pessilogroup.drivesight.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {
@@ -11,20 +15,37 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize Firebase through Native NDK
-        //initFirebase(this)
-
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         // Example of a call to a native method
         binding.sampleText.text = stringFromJNI()
+
+        // Check for notification listener permission and prompt user if not granted
+        if (!isNotificationServiceEnabled()) {
+            val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+            startActivity(intent)
+        }
     }
 
-    /**
-     * A native method that initializes Firebase.
-     */
-    //external fun initFirebase(activity: MainActivity)
+    private fun isNotificationServiceEnabled(): Boolean {
+        val contentResolver = contentResolver
+        val enabledNotificationListeners = Settings.Secure.getString(contentResolver, "enabled_notification_listeners")
+        val packageName = packageName
+        return enabledNotificationListeners != null && enabledNotificationListeners.contains(packageName)
+    }
+
+    class NotificationListener : NotificationListenerService() {
+        override fun onNotificationPosted(sbn: StatusBarNotification) {
+            val notification = sbn.notification
+            val title = notification.extras.getString("android.title") ?: ""
+            val content = notification.extras.getString("android.text") ?: ""
+            val timestamp = sbn.postTime
+
+            // Call the native method
+            onNotificationReceived(title, content, timestamp)
+        }
+    }
 
     /**
      * A native method that is implemented by the 'drivesight' native library,
@@ -37,5 +58,9 @@ class MainActivity : AppCompatActivity() {
         init {
             System.loadLibrary("drivesight")
         }
+
+        // This is the JNI function we'll call from the NotificationListenerService
+        @JvmStatic
+        external fun onNotificationReceived(title: String, content: String, timestamp: Long): Boolean
     }
 }

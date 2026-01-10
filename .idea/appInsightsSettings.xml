@@ -10,9 +10,9 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.pessilogroup.drivesight" />
-                  <option name="mobileSdkAppId" value="1:369886709660:android:214d214705650dbcfeaa59" />
-                  <option name="projectId" value="studio-8717687742-3a239" />
-                  <option name="projectNumber" value="369886709660" />
+                  <option name="mobileSdkAppId" value="1:346844043896:android:8888fbc2dd0b392a766b8d" />
+                  <option name="projectId" value="driver-sight-platforms" />
+                  <option name="projectNumber" value="346844043896" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
