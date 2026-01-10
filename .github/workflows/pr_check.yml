@@ -1,0 +1,46 @@
+# This is a basic workflow that is manually triggered
+
+name: Workflow-Hybrid PR Check 
+
+# Kích hoạt khi có Pull Request vào nhánh develop
+on:
+  pull_request:
+    branches: [ "dev.up" ]
+
+jobs:
+  build-and-verify:
+    name: Build Kotlin & C++
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. Lấy code về máy chủ CI
+      - uses: actions/checkout@v4
+
+      # 2. Cài đặt Java (JDK 17 là chuẩn cho Android hiện nay) -> minimun 11
+      - name: Set up JDK 11
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11'
+          distribution: 'temurin'
+          cache: gradle
+
+      # 3. Cài đặt Android NDK (QUAN TRỌNG CHO TEAM NATIVE)
+      # Gradle sẽ tự tải NDK nếu thiếu, nhưng cài trước sẽ nhanh hơn
+      # và tránh lỗi version mismatch.
+      - name: Setup Android NDK
+        run: echo "ndk.dir=$ANDROID_HOME/ndk-bundle" > local.properties
+
+      # 4. Kiểm tra code sạch (Linting)
+      # Nếu bước này fail, quy trình dừng ngay, không tốn thời gian build
+      - name: Run Lint Checks (Kotlin & Compose)
+        run: ./gradlew ktlintCheck detekt
+
+      # 5. Build Debug (Thử thách cuối cùng)
+      # Lệnh này sẽ compile cả Kotlin UI và chạy CMake để build C++
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug
+        
+      # 6. Chạy Unit Test (Optional nhưng khuyến khích)
+      # Kiểm tra logic tính toán Timer (C++) và UI State (Kotlin)
+      - name: Run Unit Tests
+        run: ./gradlew testDebugUnitTest
