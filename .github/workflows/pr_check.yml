@@ -5,6 +5,8 @@ name: Workflow-Hybrid PR Check
 on:
   pull_request:
     branches: [ "master" ]
+    branches-ignore:
+      - dev.feat/*
 
 jobs:
   build-and-verify:
