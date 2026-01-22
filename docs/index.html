@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Giao Diện Nổi Android Hiệu Năng Cao</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F3F4F6; color: #1F2937; }
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin: 0 auto; height: 300px; max-height: 400px; }
+        .phone-simulator {
+            width: 320px;
+            height: 640px;
+            background: #111827;
+            border-radius: 30px;
+            border: 8px solid #374151;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            margin: 0 auto;
+        }
+        .notch {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px;
+            height: 25px;
+            background: #374151;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            z-index: 20;
+        }
+        .widget-bubble {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #3B82F6, #2563EB);
+            border-radius: 50%;
+            position: absolute;
+            top: 100px;
+            left: 20px;
+            cursor: grab;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: width 0.3s, height 0.3s, border-radius 0.3s, transform 0.1s;
+            z-index: 10;
+            user-select: none;
+            touch-action: none;
+        }
+        .widget-bubble:active { cursor: grabbing; }
+        .widget-expanded {
+            width: 280px !important;
+            height: 180px !important;
+            border-radius: 16px !important;
+            left: 20px !important; 
+        }
+        .layer-box { transition: all 0.3s ease; }
+        .layer-box:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .active-tab { border-bottom: 2px solid #2563EB; color: #2563EB; }
+        .code-block { background-color: #1e1e1e; color: #d4d4d4; border-radius: 0.5rem; padding: 1rem; overflow-x: auto; font-size: 0.875rem; }
+    </style>
+    <!-- Chosen Palette: Precision Blue (Tailwind Blue-600/700) on Neutral Gray background. This reflects the "Engineering" and "High-Performance" nature of the report. -->
+    <!-- Application Structure Plan:
+        1. Dashboard Header: Executive summary and key project metrics.
+        2. "The Hybrid Engine" (Architecture): Interactive diagram showing the Kotlin <-> JNI <-> C++ relationship.
+        3. "Interactive Prototype" (Simulation): A functional JS-based simulation of the dragging/snapping physics described in the report to demonstrate UX.
+        4. "Deep Dive Data" (Performance): Chart.js visualization comparing Java Timer vs C++ Timer drift.
+        5. "Compliance & Security" (Android 14/15): Interactive checklist and troubleshooting guide for "Restricted Settings".
+        Rationale: The report is technical and focuses on architecture, physics, and compliance. This structure breaks down these complex topics into consumable, interactive modules.
+    -->
+    <!-- Visualization & Content Choices:
+        - Architecture: Uses HTML/Tailwind grid to represent layers. Interaction highlights data flow (Goal: Organize/Relationships).
+        - Simulation: Custom Vanilla JS draggable element within a bounded container. Demonstrates "Hít Cạnh" (Snapping) concept (Goal: Inform/Engagement).
+        - Performance: Chart.js Line Chart to show drift over time (Goal: Compare).
+        - Compliance: Interactive decision tree/checklist for Android 15 migration (Goal: Inform).
+        - Justification: NO SVG/Mermaid used. All visuals are code-generated for maximum interactivity and responsiveness.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex">
+                    <div class="flex-shrink-0 flex items-center">
+                        <span class="font-bold text-xl text-blue-700 tracking-tight">PRECISION<span class="text-gray-900">ANDROID</span></span>
+                    </div>
+                    <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
+                        <button onclick="switchTab('overview')" class="nav-btn active-tab inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-900">Tổng Quan</button>
+                        <button onclick="switchTab('simulation')" class="nav-btn inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700">Mô Phỏng UX</button>
+                        <button onclick="switchTab('architecture')" class="nav-btn inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700">Kiến Trúc JNI</button>
+                        <button onclick="switchTab('compliance')" class="nav-btn inline-flex items-center px-1 pt-1 text-sm font-medium text-gray-500 hover:text-gray-700">Android 14/15</button>
+                    </div>
+                </div>
+                <div class="flex items-center">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Status: Production Ready
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- Section: Overview -->
+        <section id="overview" class="tab-content block space-y-8">
+            <div class="text-center max-w-3xl mx-auto mb-12">
+                <h1 class="text-4xl font-extrabold text-gray-900 sm:text-5xl">Hệ Thống Giao Diện Nổi <span class="text-blue-600">Thế Hệ Mới</span></h1>
+                <p class="mt-4 text-xl text-gray-500">
+                    Báo cáo kỹ thuật về việc xây dựng Widget nổi (Floating Widget) với độ trễ thấp, tích hợp Native C++, và tuân thủ tuyệt đối các tiêu chuẩn bảo mật Android mới nhất.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">Công Nghệ Cốt Lõi</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-gray-900">Hybrid</dd>
+                        <dd class="mt-1 text-sm text-green-600">Kotlin & C++ JNI</dd>
+                    </div>
+                </div>
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">Độ Chính Xác Timer</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-gray-900">&lt; 1ms</dd>
+                        <dd class="mt-1 text-sm text-blue-600">Native High-Res Clock</dd>
+                    </div>
+                </div>
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">Tương Thích</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-gray-900">A12 - A15</dd>
+                        <dd class="mt-1 text-sm text-purple-600">16KB Page Ready</dd>
+                    </div>
+                </div>
+                <div class="bg-white overflow-hidden shadow rounded-lg">
+                    <div class="px-4 py-5 sm:p-6">
+                        <dt class="text-sm font-medium text-gray-500 truncate">Loại Service</dt>
+                        <dd class="mt-1 text-3xl font-semibold text-gray-900">DataSync</dd>
+                        <dd class="mt-1 text-sm text-red-600">Foreground Type</dd>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Intro Paragraph -->
+            <div class="bg-white shadow rounded-lg p-6 border-l-4 border-blue-500">
+                <h3 class="text-lg leading-6 font-medium text-gray-900 mb-2">Mục Tiêu Kỹ Thuật</h3>
+                <p class="text-gray-600">
+                    Báo cáo này tập trung giải quyết bài toán: Làm thế nào để duy trì một giao diện nổi (Overlay) mượt mà, không bị hệ điều hành "kill" ngầm, và đảm bảo trải nghiệm UX "kéo thả" tự nhiên nhất cho tài xế. Chúng tôi sử dụng kiến trúc <strong>Dumb Proxy</strong>: Java/Kotlin chỉ làm nhiệm vụ hiển thị, trong khi toàn bộ logic tính toán nặng được ủy thác xuống tầng Native C++ để tránh GC pauses và tiết kiệm pin.
+                </p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <!-- Chart Section -->
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">So Sánh Độ Trôi Timer (Timer Drift)</h3>
+                    <div class="chart-container">
+                        <canvas id="timerChart"></canvas>
+                    </div>
+                    <p class="mt-4 text-sm text-gray-500">
+                        *Dữ liệu mô phỏng: So sánh độ ổn định giữa Java ScheduledExecutor và C++ std::chrono::high_resolution_clock dưới tải nặng của CPU.
+                    </p>
+                </div>
+                
+                <!-- Key Takeaways -->
+                <div class="bg-white shadow rounded-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4">Điểm Nhấn Chiến Lược</h3>
+                    <ul class="space-y-4">
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <span class="flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-600 font-bold">1</span>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-md font-medium text-gray-900">Vật Lý Hít Cạnh (Snapping Physics)</h4>
+                                <p class="text-sm text-gray-500">Thuật toán tự động đưa Widget về cạnh màn hình gần nhất để tránh che khuất tầm nhìn, sử dụng Spring Animation.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <span class="flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-600 font-bold">2</span>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-md font-medium text-gray-900">Vượt Qua "Restricted Settings"</h4>
+                                <p class="text-sm text-gray-500">Hướng dẫn UX để người dùng tự cấp quyền cho ứng dụng cài ngoài (Sideloaded) trên Android 13+.</p>
+                            </div>
+                        </li>
+                        <li class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <span class="flex items-center justify-center h-8 w-8 rounded-full bg-blue-100 text-blue-600 font-bold">3</span>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-md font-medium text-gray-900">Sẵn Sàng Cho Android 15</h4>
+                                <p class="text-sm text-gray-500">Hỗ trợ 16KB Page Size bằng cách tái biên dịch thư viện NDK và căn chỉnh bộ nhớ (memory alignment).</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Simulation -->
+        <section id="simulation" class="tab-content hidden space-y-8">
+            <div class="bg-white shadow rounded-lg p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-900">Mô Phỏng Tương Tác: Draggable Widget</h2>
+                <p class="mt-2 text-gray-600">
+                    Đây là bản mô phỏng trực tiếp trên trình duyệt của logic "Floating Widget". Hãy thử kéo nút tròn màu xanh bên trong khung điện thoại giả lập. 
+                    Hệ thống sẽ tự động tính toán vị trí thả tay để "hít" vào cạnh màn hình (Edge Snapping).
+                </p>
+                <div class="mt-4 flex space-x-4">
+                    <div class="flex items-center">
+                        <input id="snap-toggle" type="checkbox" checked class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="snap-toggle" class="ml-2 block text-sm text-gray-900">Bật chế độ "Hít Cạnh"</label>
+                    </div>
+                    <button onclick="toggleExpand()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition">Chuyển Chế Độ: Thu Gọn / Mở Rộng</button>
+                </div>
+            </div>
+
+            <div class="flex justify-center">
+                <div class="phone-simulator" id="phone-screen">
+                    <div class="notch"></div>
+                    <!-- Background App Placeholder -->
+                    <div class="absolute inset-0 bg-gray-800 flex flex-col items-center justify-center opacity-30 pointer-events-none">
+                        <div class="w-3/4 h-4 bg-gray-600 rounded mb-2"></div>
+                        <div class="w-1/2 h-4 bg-gray-600 rounded mb-2"></div>
+                        <div class="w-full h-32 bg-gray-600 rounded mb-2 mt-4"></div>
+                        <div class="text-gray-400 mt-4 font-mono text-xs">APP NỀN ĐANG CHẠY...</div>
+                    </div>
+                    
+                    <!-- The Widget -->
+                    <div id="widget" class="widget-bubble shadow-lg">
+                        <span id="widget-text">GO</span>
+                        <!-- Close X (hidden by default) -->
+                        <div id="close-zone" class="absolute bottom-4 left-1/2 transform -translate-x-1/2 w-12 h-12 bg-red-500 rounded-full flex items-center justify-center opacity-0 transition-opacity duration-300 pointer-events-none">
+                            <span class="text-white font-bold">✕</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                <div class="bg-white p-4 rounded shadow">
+                    <h4 class="font-bold text-gray-900">Tọa Độ (X, Y)</h4>
+                    <p id="coords-display" class="font-mono text-blue-600">0, 0</p>
+                </div>
+                <div class="bg-white p-4 rounded shadow">
+                    <h4 class="font-bold text-gray-900">Trạng Thái</h4>
+                    <p id="state-display" class="font-mono text-green-600">Idle</p>
+                </div>
+                <div class="bg-white p-4 rounded shadow">
+                    <h4 class="font-bold text-gray-900">Native Callbacks</h4>
+                    <p id="native-logs" class="font-mono text-purple-600 text-xs text-left overflow-hidden h-6">Waiting...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Architecture -->
+        <section id="architecture" class="tab-content hidden space-y-8">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Kiến Trúc Hybrid (Kotlin + C++)</h2>
+                <p class="text-gray-600 mb-6">
+                    Sơ đồ luồng dữ liệu giữa tầng Android Framework và tầng Native. Thiết kế này đảm bảo logic nghiệp vụ quan trọng không bị ảnh hưởng bởi Garbage Collection của Java.
+                </p>
+
+                <!-- Architecture Diagram Built with CSS Grid/Flex -->
+                <div class="flex flex-col space-y-4 max-w-4xl mx-auto">
+                    
+                    <!-- Application Layer -->
+                    <div class="border-2 border-dashed border-gray-300 p-4 rounded-xl bg-gray-50">
+                        <h3 class="text-sm font-bold text-gray-500 uppercase tracking-wide mb-2">Android Application Layer (Kotlin)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="bg-blue-50 border border-blue-200 p-4 rounded shadow-sm text-center layer-box">
+                                <div class="font-bold text-blue-800">Foreground Service</div>
+                                <div class="text-xs text-blue-600 mt-1">Quản lý Vòng Đời</div>
+                                <div class="text-xs text-gray-500 mt-1">type="dataSync"</div>
+                            </div>
+                            <div class="bg-blue-50 border border-blue-200 p-4 rounded shadow-sm text-center layer-box">
+                                <div class="font-bold text-blue-800">Window Manager</div>
+                                <div class="text-xs text-blue-600 mt-1">Hiển Thị UI</div>
+                                <div class="text-xs text-gray-500 mt-1">TYPE_APPLICATION_OVERLAY</div>
+                            </div>
+                            <div class="bg-blue-50 border border-blue-200 p-4 rounded shadow-sm text-center layer-box">
+                                <div class="font-bold text-blue-800">Touch Listener</div>
+                                <div class="text-xs text-blue-600 mt-1">Nhận Sự Kiện</div>
+                                <div class="text-xs text-gray-500 mt-1">ACTION_MOVE/UP</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- JNI Bridge -->
+                    <div class="flex justify-center items-center py-2">
+                        <div class="bg-purple-600 text-white px-6 py-2 rounded-full font-mono text-sm shadow-md z-10">
+                            JNI Bridge (Java Native Interface)
+                        </div>
+                        <div class="absolute h-16 w-0.5 bg-gray-300 z-0"></div>
+                    </div>
+
+                    <!-- Native Layer -->
+                    <div class="border-2 border-dashed border-gray-300 p-4 rounded-xl bg-gray-900">
+                        <h3 class="text-sm font-bold text-gray-400 uppercase tracking-wide mb-2">Native Core Layer (C++ / Rust)</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-gray-800 border border-gray-700 p-4 rounded shadow-sm text-center layer-box">
+                                <div class="font-bold text-green-400">Core Engine</div>
+                                <div class="text-xs text-gray-400 mt-1">Xử Lý Logic Chính</div>
+                                <div class="text-xs text-gray-500 mt-1">std::thread, mutex</div>
+                            </div>
+                            <div class="bg-gray-800 border border-gray-700 p-4 rounded shadow-sm text-center layer-box">
+                                <div class="font-bold text-green-400">High-Res Timer</div>
+                                <div class="text-xs text-gray-400 mt-1">Bộ Đếm Giờ</div>
+                                <div class="text-xs text-gray-500 mt-1">nanoseconds precision</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Code Snippet Area -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">Kotlin: Khai Báo Native</h3>
+                    <pre class="code-block font-mono">
+// NativeInterface.kt
+object NativeInterface {
+    init {
+        System.loadLibrary("core-engine")
+    }
+
+    external fun startTimer(intervalMs: Long)
+    external fun stopTimer()
+    external fun updateTouchCoordinates(x: Float, y: Float)
+}</pre>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2">C++: Nhận Dữ Liệu</h3>
+                    <pre class="code-block font-mono">
+// native-lib.cpp
+extern "C" JNIEXPORT void JNICALL
+Java_com_app_NativeInterface_updateTouchCoordinates(
+        JNIEnv* env, 
+        jobject, 
+        jfloat x, 
+        jfloat y) {
+    // Xử lý tọa độ trực tiếp tại Native
+    CoreEngine::getInstance()->processInput(x, y);
+}</pre>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section: Compliance -->
+        <section id="compliance" class="tab-content hidden space-y-8">
+            <div class="bg-white shadow rounded-lg p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Danh Sách Kiểm Tra Tuân Thủ (Android 14/15)</h2>
+                <p class="text-gray-600 mb-6">Để ứng dụng hoạt động ổn định trên các thiết bị mới nhất, các yêu cầu sau là bắt buộc.</p>
+
+                <div class="space-y-4">
+                    <!-- Item 1 -->
+                    <div class="border border-gray-200 rounded-lg p-4 flex items-start cursor-pointer hover:bg-gray-50 transition" onclick="toggleDetail('detail-1')">
+                        <div class="flex-shrink-0 pt-1">
+                            <span class="h-6 w-6 rounded-full bg-red-100 flex items-center justify-center text-red-600 text-sm font-bold">!</span>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <h4 class="text-lg font-medium text-gray-900">Quyền Foreground Service (Android 14+)</h4>
+                            <p class="text-sm text-gray-500">Phải khai báo `foregroundServiceType` cụ thể trong Manifest.</p>
+                            <div id="detail-1" class="hidden mt-3 bg-gray-100 p-3 rounded text-sm font-mono text-gray-700">
+                                &lt;service<br>
+                                &nbsp;&nbsp;android:name=".MyService"<br>
+                                &nbsp;&nbsp;android:foregroundServiceType="dataSync|specialUse" /&gt;
+                            </div>
+                        </div>
+                        <div class="ml-auto">
+                             <span class="text-gray-400">▼</span>
+                        </div>
+                    </div>
+
+                    <!-- Item 2 -->
+                    <div class="border border-gray-200 rounded-lg p-4 flex items-start cursor-pointer hover:bg-gray-50 transition" onclick="toggleDetail('detail-2')">
+                        <div class="flex-shrink-0 pt-1">
+                             <span class="h-6 w-6 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-sm font-bold">⚡</span>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <h4 class="text-lg font-medium text-gray-900">Hỗ Trợ 16KB Page Size (Android 15)</h4>
+                            <p class="text-sm text-gray-500">Bắt buộc rebuild lại các thư viện Native (.so) với alignment mới.</p>
+                            <div id="detail-2" class="hidden mt-3 bg-gray-100 p-3 rounded text-sm text-gray-700">
+                                <p class="mb-2">Kiểm tra thư viện hiện tại:</p>
+                                <code class="bg-gray-200 px-1">readelf -l libapp.so | grep ALIGN</code>
+                                <p class="mt-2">Nếu `ALIGN` là `0x1000` (4KB) -> <strong>KHÔNG TƯƠNG THÍCH</strong>. Phải là `0x4000` (16KB) trở lên.</p>
+                            </div>
+                        </div>
+                        <div class="ml-auto">
+                             <span class="text-gray-400">▼</span>
+                        </div>
+                    </div>
+
+                     <!-- Item 3 -->
+                     <div class="border border-gray-200 rounded-lg p-4 flex items-start cursor-pointer hover:bg-gray-50 transition" onclick="toggleDetail('detail-3')">
+                        <div class="flex-shrink-0 pt-1">
+                             <span class="h-6 w-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-sm font-bold">?</span>
+                        </div>
+                        <div class="ml-4 flex-1">
+                            <h4 class="text-lg font-medium text-gray-900">Sự Cố "Restricted Settings" (Android 13+)</h4>
+                            <p class="text-sm text-gray-500">Người dùng không thể cấp quyền Accessibility/Notification cho file APK cài ngoài.</p>
+                            <div id="detail-3" class="hidden mt-3 bg-gray-100 p-3 rounded text-sm text-gray-700">
+                                <strong>Giải pháp UX:</strong><br>
+                                1. Hiển thị Dialog hướng dẫn người dùng.<br>
+                                2. Yêu cầu user vào: <em>App Info -> 3 Dots Menu -> Allow Restricted Settings</em>.<br>
+                                3. Sau đó quay lại menu Accessibility để bật quyền.
+                            </div>
+                        </div>
+                        <div class="ml-auto">
+                             <span class="text-gray-400">▼</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-gray-200 mt-12">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-sm text-gray-500">
+                &copy; 2026 Engineering Team. Tài liệu kỹ thuật nội bộ. Dựa trên báo cáo "Smart Sticky Navigation".
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // --- TAB NAVIGATION LOGIC ---
+        function switchTab(tabId) {
+            // Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('block'));
+            
+            // Show selected
+            const selected = document.getElementById(tabId);
+            selected.classList.remove('hidden');
+            selected.classList.add('block');
+
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active-tab', 'text-gray-900');
+                btn.classList.add('text-gray-500');
+            });
+            // Find the button that called this (approximate match via onclick text or just re-render logic, simplified here)
+            const btns = document.querySelectorAll('.nav-btn');
+            if(tabId === 'overview') btns[0].classList.add('active-tab', 'text-gray-900');
+            if(tabId === 'simulation') btns[1].classList.add('active-tab', 'text-gray-900');
+            if(tabId === 'architecture') btns[2].classList.add('active-tab', 'text-gray-900');
+            if(tabId === 'compliance') btns[3].classList.add('active-tab', 'text-gray-900');
+        }
+
+        function toggleDetail(id) {
+            const el = document.getElementById(id);
+            if (el.classList.contains('hidden')) {
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+
+        // --- CHART.JS LOGIC ---
+        // Comparison of Timer Drift: Java Thread vs Native C++ Loop
+        const ctx = document.getElementById('timerChart').getContext('2d');
+        const timerChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['0s', '10s', '30s', '60s', '120s', '300s', '600s'],
+                datasets: [
+                    {
+                        label: 'Java ScheduledExecutor (Drift)',
+                        data: [0, 5, 12, 25, 45, 120, 300], // Simulating high drift under load
+                        borderColor: 'rgb(239, 68, 68)', // Red
+                        tension: 0.4
+                    },
+                    {
+                        label: 'C++ High-Res Clock (Drift)',
+                        data: [0, 0.1, 0.2, 0.3, 0.5, 0.8, 1.2], // Simulating stable low drift
+                        borderColor: 'rgb(37, 99, 235)', // Blue
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                    }
+                },
+                scales: {
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Độ Trễ Tích Lũy (ms)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // --- SIMULATION LOGIC (DRAG & DROP + SNAPPING) ---
+        const widget = document.getElementById('widget');
+        const phoneScreen = document.getElementById('phone-screen');
+        const coordsDisplay = document.getElementById('coords-display');
+        const stateDisplay = document.getElementById('state-display');
+        const nativeLogs = document.getElementById('native-logs');
+        const snapToggle = document.getElementById('snap-toggle');
+        const widgetText = document.getElementById('widget-text');
+
+        let isDragging = false;
+        let isExpanded = false;
+        let startX, startY, initialLeft, initialTop;
+
+        // Boundaries
+        const phoneRect = phoneScreen.getBoundingClientRect();
+        
+        // Ensure boundaries update on resize
+        window.addEventListener('resize', () => {
+             // Simplified: In a real app we'd recalculate bounds dynamically
+        });
+
+        widget.addEventListener('mousedown', startDrag);
+        widget.addEventListener('touchstart', startDrag, {passive: false});
+
+        function startDrag(e) {
+            if (isExpanded) return; // Disable drag if expanded for simplicity
+            
+            e.preventDefault();
+            isDragging = true;
+            stateDisplay.innerText = "Dragging...";
+            stateDisplay.className = "font-mono text-orange-600";
+            
+            const clientX = e.type === 'touchstart' ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchstart' ? e.touches[0].clientY : e.clientY;
+
+            startX = clientX;
+            startY = clientY;
+            
+            // Get current CSS left/top
+            initialLeft = widget.offsetLeft;
+            initialTop = widget.offsetTop;
+
+            document.addEventListener('mousemove', drag);
+            document.addEventListener('mouseup', stopDrag);
+            document.addEventListener('touchmove', drag, {passive: false});
+            document.addEventListener('touchend', stopDrag);
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            e.preventDefault();
+
+            const clientX = e.type === 'touchmove' ? e.touches[0].clientX : e.clientX;
+            const clientY = e.type === 'touchmove' ? e.touches[0].clientY : e.clientY;
+
+            const dx = clientX - startX;
+            const dy = clientY - startY;
+
+            let newLeft = initialLeft + dx;
+            let newTop = initialTop + dy;
+
+            // Constrain within phone screen
+            // Phone width 320, Widget width 60
+            if (newLeft < 0) newLeft = 0;
+            if (newLeft > 320 - 60) newLeft = 320 - 60;
+            if (newTop < 0) newTop = 0;
+            if (newTop > 640 - 60) newTop = 640 - 60;
+
+            widget.style.left = `${newLeft}px`;
+            widget.style.top = `${newTop}px`;
+            widget.style.transition = 'none'; // Disable transition for instant follow
+
+            coordsDisplay.innerText = `${Math.round(newLeft)}, ${Math.round(newTop)}`;
+            
+            // Simulate sending JNI update
+            if (Math.random() > 0.8) {
+                nativeLogs.innerText = `JNI: updatePos(${Math.round(newLeft)}, ${Math.round(newTop)})`;
+            }
+        }
+
+        function stopDrag() {
+            if (!isDragging) return;
+            isDragging = false;
+            
+            document.removeEventListener('mousemove', drag);
+            document.removeEventListener('mouseup', stopDrag);
+            document.removeEventListener('touchmove', drag);
+            document.removeEventListener('touchend', stopDrag);
+
+            widget.style.transition = 'all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1)'; // Restore smooth transition
+
+            // SNAP LOGIC (Hít Cạnh)
+            if (snapToggle.checked) {
+                stateDisplay.innerText = "Snapping Physics...";
+                const currentLeft = widget.offsetLeft;
+                const midX = (320 - 60) / 2;
+                
+                let finalLeft;
+                if (currentLeft < midX) {
+                    finalLeft = 5; // Snap Left padding
+                } else {
+                    finalLeft = 320 - 60 - 5; // Snap Right padding
+                }
+                
+                widget.style.left = `${finalLeft}px`;
+                setTimeout(() => {
+                    stateDisplay.innerText = "Idle";
+                    stateDisplay.className = "font-mono text-green-600";
+                    nativeLogs.innerText = `JNI: onSnapComplete()`;
+                }, 300);
+            } else {
+                stateDisplay.innerText = "Floating Free";
+            }
+        }
+
+        function toggleExpand() {
+            isExpanded = !isExpanded;
+            if (isExpanded) {
+                widget.classList.add('widget-expanded');
+                widgetText.innerText = "PANEL";
+                // Center slightly for demo
+                // widget.style.left = '20px'; // Handled by class
+                stateDisplay.innerText = "Mode: Expanded";
+            } else {
+                widget.classList.remove('widget-expanded');
+                widgetText.innerText = "GO";
+                stateDisplay.innerText = "Mode: Icon";
+            }
+        }
+
+        // Initialize defaults
+        switchTab('overview');
+    </script>
+</body>
+</html>
