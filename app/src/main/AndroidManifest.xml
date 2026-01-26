@@ -2,8 +2,34 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-        tools:ignore="ProtectedPermissions" />
+    <!-- <editor-fold desc="Permission Basic"> -->
+    <!-- 1. Quyền cơ bản -->
+    <!-- </editor-fold> -->
+    <uses-permission
+        android:name="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+        tools:ignore="ProtectedPermissions" /> <!-- <editor-fold desc="Permission Foreground Service"> -->
+    <!-- 2. Quyền Foreground Service (Bắt buộc Android 14/15) -->
+    <!-- </editor-fold> -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE"
+        tools:ignore="ProtectedPermissions"> <!-- <general-purpose android:name="android.app.Service"/> -->
+    </uses-permission>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" /> <!-- <editor-fold desc="Permission Special Service"> -->
+    <!-- 2. Quyền Special Service (Bắt buộc Android 14/15) -->
+    <!-- </editor-fold> -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- <editor-fold desc="Queries"> -->
+    <!-- 3. Truy vấn danh sách ứng dụng (Để lấy tên app từ package name) -->
+    <!-- </editor-fold> -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+        </intent>
+    </queries>
 
     <application
         android:allowBackup="true"
@@ -14,6 +40,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.DriveSight">
+
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -23,15 +51,32 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <service android:name=".MainActivity$NotificationListener"
+        <!-- <editor-fold desc="Khai Báo Service Lắng Nghe Thông Báo"> -->
+        <!-- SERVICE LẮNG NGHE THÔNG BÁO Lưu ý: Android 12+ có thể chặn service này nếu app không phải từ Store. -->
+        <!-- </editor-fold> -->
+        <service
+            android:name=".MainActivity$NotificationListener"
+            android:exported="true"
             android:label="@string/app_name"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
-            android:exported="true">
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"> <!-- -android:foregroundServiceType="dataSync" -->
+
             <intent-filter>
                 <action android:name="android.service.notification.NotificationListenerService" />
             </intent-filter>
         </service>
+        <!-- <editor-fold desc="Khai Báo Service Floating Widget"> -->
+        <!-- SERVICE FLOATING WIDGET -->
+        <!-- </editor-fold> -->
+        <service
+            android:name=".services.FWService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse|dataSync">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="floating_widget_overlay_driver_assistant" />
+        </service>
+
     </application>
 
 </manifest>
